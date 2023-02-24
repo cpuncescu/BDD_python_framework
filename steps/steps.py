@@ -1,0 +1,124 @@
+from selenium.webdriver.support import expected_conditions as EC
+from behave import when, given, then
+from multisteps import mainapp
+from environment import Profiles
+import importlib
+import time
+import re
+
+
+def extract_params(pageobject):
+    match = re.search(r'\((.*?)\)', pageobject)
+    if match:
+        return match.group(1)
+    else:
+        return ''
+
+
+def page_object_selector(context, pageobject):
+    # get the parameters inside the '()' if any
+    params = extract_params(pageobject)
+    final_attribute = pageobject.split('(')[0]
+    """create a class which inherits the attributes from all of
+    the existing classes of the PageObjects folder"""
+
+    class PageObj(*context.pageObjClasses):
+        def __init__(self, *args):
+            for cls in context.pageObjClasses:
+                cls.__init__(self, *args)
+
+    Obj = PageObj(params)
+    """returns a tuple of format (METHOD, locator)
+    e.g ('Name', 'password')"""
+    selector = getattr(Obj, final_attribute)
+    return selector
+
+
+def return_selector_method(context, selector='', pageobject=''):
+    if pageobject:
+        method, locator = page_object_selector(context, pageobject)
+    elif selector:
+        method, locator = selector.split(',', maxsplit=1)
+    else:
+        assert False, "No selector or page object given"
+    return context.locate_method[method], locator.strip()
+
+
+def parse_profile_var(func):
+    def wrapper(context, *args, **kwargs):
+        for kwname, arg in kwargs.items():
+            """takes all the variable names with format ${var_name}
+            and returns a list with variable name/s: ['var_name']"""
+            matches = re.findall(r'\${(.*?)}', arg)
+            values = []
+            if matches:
+                for i in matches:
+                    assert i in context.profile, f'{i} is not found in the profile variables'
+                    """takes the name of the variable and replaces it with
+                    the value stored in the profile then adds it to a list"""
+                    values.append(context.profile[i])
+                new_arg = re.sub(r'\$\{(\w+)\}', '{}', arg)
+                """replaces the variables with the actual values
+                then returns the parameter to the function
+                """
+                kwargs[kwname] = new_arg.format(*values)
+        return func(context, *args, **kwargs)
+    return wrapper
+
+
+@given(u'profile "{profile}"')
+def load_profile(context, profile):
+    assert profile in Profiles.Profiles, f"There is no profile {profile} defined"
+    context.profile = Profiles.Profiles[profile]
+
+
+@when(u'I navigate to "{url}"')
+def navigate_to(context, url):
+    context.driver.get(url)
+    current_url = context.driver.current_url
+    assert url in current_url, f"Assertion failed, the current url is {current_url}"
+
+
+@when(u'I wait for {seconds:d} seconds')
+def wait_for(context, seconds):
+    time.sleep(seconds)
+
+
+@then(u'I should see "{pageobject}"')
+@then(u'I should see element "{selector}"')
+def i_should_see(context, selector='', pageobject=''):
+    method, locator = return_selector_method(context, selector, pageobject)
+    element = context.wait.until(EC.visibility_of_all_elements_located((method, locator)))
+    assert len(element) == 1, f"Found more than 1 element: {len(element)}"
+
+
+@when(u'I press "{pageobject}"')
+@when(u'I press on "{selector}"')
+@parse_profile_var
+def i_press(context, selector='', pageobject=''):
+    method, locator = return_selector_method(context, selector, pageobject)
+    clickable_element = context.wait.until(EC.element_to_be_clickable((method, locator)))
+    clickable_element.click()
+
+
+@when(u'I fill "{pageobject}" with "{text}"')
+@when(u'I fill selector "{selector}" with "{text}"')
+@parse_profile_var
+def i_fill(context, text, selector='', pageobject=''):
+    method, locator = return_selector_method(context, selector, pageobject)
+    element = context.wait.until(EC.element_to_be_clickable((method, locator)))
+    element.clear()
+    element.send_keys(text)
+
+
+@when(u'I execute "{step}"')
+def i_execute(context, step):
+    parameters = [x.strip() for x in extract_params(step).split(",")]
+    module = importlib.import_module("multisteps.mainapp")
+    func = getattr(mainapp, step.split("(")[0])
+    final_steps = func.format(*parameters) if parameters else func
+    param_nr = func.count("{}")
+    assert param_nr == len(
+        parameters
+    ), f"You passed {len(parameters)} parameters but the multisteps need {param_nr}"
+    context.execute_steps(final_steps)
