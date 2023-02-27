@@ -24,7 +24,7 @@ Feature: OrangeHRM Logo
     And I should see "login_input(password)"
     When I fill "login_input(username)" with "<username>"
     And I fill "login_input(password)" with "<password>"
-    Then I should see element "CLASS_NAME, orangehrm-login-error"
+    Then I should see element "CLASS, orangehrm-login-error"
     When I press "login_button()"
     Examples:
       |username  |password

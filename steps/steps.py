@@ -2,7 +2,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from behave import when, given, then
 from multisteps import mainapp
 from environment import Profiles
-import importlib
 import time
 import re
 
@@ -114,7 +113,6 @@ def i_fill(context, text, selector='', pageobject=''):
 @when(u'I execute "{step}"')
 def i_execute(context, step):
     parameters = [x.strip() for x in extract_params(step).split(",")]
-    module = importlib.import_module("multisteps.mainapp")
     func = getattr(mainapp, step.split("(")[0])
     final_steps = func.format(*parameters) if parameters else func
     param_nr = func.count("{}")
@@ -122,3 +120,4 @@ def i_execute(context, step):
         parameters
     ), f"You passed {len(parameters)} parameters but the multisteps need {param_nr}"
     context.execute_steps(final_steps)
+

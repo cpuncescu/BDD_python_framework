@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.common.by import By
 from environment import Configuration as cfg
 from behave.model_core import Status
 import os
@@ -25,14 +26,14 @@ def before_all(context):
     context.driver = webdriver.Chrome()
     context.wait = WebDriverWait(context.driver, cfg.ELEMENT_WAIT_TIME)
     context.locate_method = {
-        "NAME": "name",
-        "CSS_SELECTOR": "css selector",
-        "XPATH": "xpath",
-        "ID": "id",
-        "CLASS_NAME": "class name",
-        "TAG_NAME": "tag name",
-        "LINK_TEXT": "link text",
-        "PARTIAL_LINK_TEXT": "partial link text",
+        "NAME": By.NAME,
+        "CSS": By.CSS_SELECTOR,
+        "XPATH": By.XPATH,
+        "ID": By.ID,
+        "CLASS": By.CLASS_NAME,
+        "TAG": By.TAG_NAME,
+        "LINK_TEXT": By.LINK_TEXT,
+        "PARTIAL_LINK_TEXT": By.PARTIAL_LINK_TEXT,
     }
     context.pageObjClasses = get_classes()
 
