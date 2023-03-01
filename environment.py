@@ -53,5 +53,5 @@ def after_step(context, step):
 
 def after_scenario(context, scenario):
     context.driver.execute_script("window.localStorage.clear();")
-    if Status.failed:
+    if context.step.status == Status.failed:
         context.driver.save_screenshot(f"../failed_tests_screenshots/failed_{scenario}{scenario.tags[0]}.png")
