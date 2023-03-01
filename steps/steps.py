@@ -89,14 +89,15 @@ def i_should_see(context, selector='', pageobject=''):
     method, locator = return_selector_method(context, selector, pageobject)
     element = context.wait.until(EC.visibility_of_all_elements_located((method, locator)))
     assert len(element) == 1, f"Found more than 1 element: {len(element)}"
+    return element[0]
 
 
 @when(u'I press "{pageobject}"')
 @when(u'I press on "{selector}"')
 @parse_profile_var
 def i_press(context, selector='', pageobject=''):
-    method, locator = return_selector_method(context, selector, pageobject)
-    clickable_element = context.wait.until(EC.element_to_be_clickable((method, locator)))
+    element = i_should_see(context, selector, pageobject)
+    clickable_element = context.wait.until(EC.element_to_be_clickable(element))
     clickable_element.click()
 
 
@@ -104,10 +105,10 @@ def i_press(context, selector='', pageobject=''):
 @when(u'I fill selector "{selector}" with "{text}"')
 @parse_profile_var
 def i_fill(context, text, selector='', pageobject=''):
-    method, locator = return_selector_method(context, selector, pageobject)
-    element = context.wait.until(EC.element_to_be_clickable((method, locator)))
-    element.clear()
-    element.send_keys(text)
+    element = i_should_see(context, selector, pageobject)
+    clickable_element = context.wait.until(EC.element_to_be_clickable(element))
+    clickable_element.clear()
+    clickable_element.send_keys(text)
 
 
 @when(u'I execute "{step}"')
@@ -120,4 +121,12 @@ def i_execute(context, step):
         parameters
     ), f"You passed {len(parameters)} parameters but the multisteps need {param_nr}"
     context.execute_steps(final_steps)
+
+
+@when(u'I take screenshot of "{pageobject}" and name it "{screenshot_name}"')
+@when(u'I take screenshot of element "{selector}" and name it "{screenshot_name}"')
+def i_take_screenshot(context, screenshot_name, selector='', pageobject=''):
+    element = i_should_see(context, selector, pageobject)
+    element.screenshot(f"../screenshots/{screenshot_name}.png")
+
 

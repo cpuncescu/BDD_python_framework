@@ -39,11 +39,12 @@ def before_all(context):
 
 
 def before_step(context, step):
-    step = step
+    context.step = step
 
 
 def before_scenario(context, scenario):
     context.profile = None
+    context.scenario = scenario
 
 
 def after_step(context, step):
@@ -52,3 +53,5 @@ def after_step(context, step):
 
 def after_scenario(context, scenario):
     context.driver.execute_script("window.localStorage.clear();")
+    if Status.failed:
+        context.driver.save_screenshot(f"../failed_tests_screenshots/failed_{scenario}{scenario.tags[0]}.png")

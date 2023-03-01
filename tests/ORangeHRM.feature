@@ -39,4 +39,5 @@ Feature: OrangeHRM Logo
     When I execute "login_action(${profile_username}, ${profile_password})"
     And I wait for 3 seconds
     When I press "user_dropdown()"
+    And I take screenshot of "dashboard_menu()" and name it "dashboard_menu"
     And I press "logout()"
