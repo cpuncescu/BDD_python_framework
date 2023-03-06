@@ -41,3 +41,14 @@ Feature: OrangeHRM Logo
     When I press "user_dropdown()"
     And I take screenshot of "dashboard_menu()" and name it "dashboard_menu"
     And I press "logout()"
+
+
+  @04
+  Scenario: Login using javascript
+    When I wait for 2 seconds
+    And I execute javascript command "document.getElementsByName('username')[0].value='Admin'"
+    And I execute javascript command "document.getElementsByName('password')[0].value='admin123'"
+    And I execute javascript command "document.getElementsByClassName('oxd-form')[0].submit()"
+    Then I should see "logo_image()"
+    When I press "user_dropdown()"
+    And I press "logout()"

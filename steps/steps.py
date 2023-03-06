@@ -147,3 +147,8 @@ def i_drag_drop(
     source_elem = i_should_see(context, selector_source, pageobject_source)
     dest_elem = i_should_see(context, selector_dest, page_object_dest)
     context.AC.drag_and_drop(source_elem, dest_elem).perform()
+
+
+@when('I execute javascript command "{jscript}"')
+def i_execute_script(context, jscript):
+    context.driver.execute_script(jscript)
