@@ -52,15 +52,17 @@ def get_multisteps():
 
 
 def before_all(context):
-    #context.driver = webdriver.Chrome()
-    capabilities = {
-        'browserName': 'chrome',
-        'name': 'Cipri Test'
-    }
-    context.driver = webdriver.Remote
-    port = os.environ.get("ports")
-    url = f"http://localhost:{port}/wd/hub"
-    context.driver = webdriver.Remote(command_executor=url, desired_capabilities=capabilities)
+    remote_video = os.environ.get("docker_video")
+    if remote_video == "True":
+        capabilities = {
+            'browserName': 'chrome'
+        }
+        context.driver = webdriver.Remote
+        port = os.environ.get("ports")
+        url = f"http://localhost:{port}/wd/hub"
+        context.driver = webdriver.Remote(command_executor=url, desired_capabilities=capabilities)
+    else:
+        context.driver = webdriver.Chrome()
     context.wait = WebDriverWait(context.driver, cfg.ELEMENT_WAIT_TIME)
     context.AC = ActionChains(context.driver)
     context.locate_method = {
