@@ -6,6 +6,7 @@ from environment import Configuration as cfg
 from behave.model_core import Status
 import os
 import importlib
+import time
 
 
 def get_classes():
@@ -51,7 +52,15 @@ def get_multisteps():
 
 
 def before_all(context):
-    context.driver = webdriver.Chrome()
+    #context.driver = webdriver.Chrome()
+    capabilities = {
+        'browserName': 'chrome',
+        'name': 'Cipri Test'
+    }
+    context.driver = webdriver.Remote
+    port = os.environ.get("ports")
+    url = f"http://localhost:{port}/wd/hub"
+    context.driver = webdriver.Remote(command_executor=url, desired_capabilities=capabilities)
     context.wait = WebDriverWait(context.driver, cfg.ELEMENT_WAIT_TIME)
     context.AC = ActionChains(context.driver)
     context.locate_method = {
@@ -88,3 +97,6 @@ def after_scenario(context, scenario):
             f"../failed_tests_screenshots/failed_{scenario}{scenario.tags[0]}.png"
         )
         print(f"Step failed at line {context.step.line}")
+
+def after_all(context):
+    context.driver.quit()
