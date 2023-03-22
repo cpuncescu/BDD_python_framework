@@ -6,6 +6,10 @@ import time
 
 
 def run_feature(tag, container_port, video_port):
+    #get the path one level above the current path so that we can store the videos there
+    current_dir = os.getcwd()
+    parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+
     container_name = f"selenium_{tag}"
 
     os.environ["ports"] = str(container_port)
@@ -39,7 +43,7 @@ def run_feature(tag, container_port, video_port):
             "--name",
             f"video_{tag}",
             "-v",
-            f"./Scenario_videos:/videos",
+            f"{parent_dir}/Scenario_videos:/videos",
             "-e",
             f"DISPLAY_CONTAINER_NAME={container_name}",
             "-e",
