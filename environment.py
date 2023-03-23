@@ -52,7 +52,8 @@ def get_multisteps():
 
 
 def before_all(context):
-    remote_video = os.environ.get("docker_video")
+    remote_video = os.environ.get("docker_parallel_video")
+    docker_compose = os.environ.get("docker_compose")
     if remote_video == "True":
         capabilities = {
             'browserName': 'chrome'
@@ -60,6 +61,13 @@ def before_all(context):
         context.driver = webdriver.Remote
         port = os.environ.get("ports")
         url = f"http://localhost:{port}/wd/hub"
+        context.driver = webdriver.Remote(command_executor=url, desired_capabilities=capabilities)
+    elif docker_compose == "True":
+        capabilities = {
+            'browserName': 'chrome'
+        }
+        context.driver = webdriver.Remote
+        url = f"http://localhost:4444/wd/hub"
         context.driver = webdriver.Remote(command_executor=url, desired_capabilities=capabilities)
     else:
         context.driver = webdriver.Chrome()

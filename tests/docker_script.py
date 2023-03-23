@@ -15,13 +15,13 @@ import click
 
 
 @click.command()
-@click.option('--docker_video', default=False, help='Whether to run tests in a Docker container or not')
+@click.option('--docker_parallel_video', default=False, help='Whether to run tests in a Docker container or not')
 @click.option('--docker_compose', default=False, help='Whether to run tests in a Docker container or not')
-def run(docker_video='', docker_compose=''):
+def run(docker_parallel_video='', docker_compose=''):
 
-    if docker_video:
+    if docker_parallel_video:
         # set the variable so that the framework will know to use remote webdriver
-        os.environ["docker_video"] = "True"
+        os.environ["docker_parallel_video"] = "True"
 
         # run the tests
         feature_files = get_feature_files()
@@ -29,10 +29,14 @@ def run(docker_video='', docker_compose=''):
         run_parallel_tags(tags)
     elif docker_compose:
         os.environ["docker_compose"] = "True"
-        print('why?')
+        parent_path = get_parent_dir()
+        file_path = os.path.join(parent_path, "docker-compose-v3.yml")
+        subprocess.run(["docker", "compose", "-f", file_path, "up", "-d"])
+        time.sleep(5)
+        subprocess.run(["behave", "--tags", "~all"])
+        subprocess.run(["docker", "compose", "-f", file_path, "down"])
     else:
         subprocess.run(["behave", "--tags", "~all"])
-
 
 
 def get_feature_files():
