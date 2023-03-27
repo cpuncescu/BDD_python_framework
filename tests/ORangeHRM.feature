@@ -3,6 +3,7 @@ Feature: OrangeHRM Logo
   Background:
     When I navigate to "https://opensource-demo.orangehrmlive.com"
 
+  @parallel_01
   @01
   Scenario: Logo Presence on OrangeHRM page
     Given profile "Admin"
@@ -18,6 +19,7 @@ Feature: OrangeHRM Logo
     When I press "user_dropdown()"
     And I press "logout()"
 
+  @parallel_02
   @02
   Scenario Outline: Failed logins
     Then I should see "login_input(username)"
@@ -33,6 +35,7 @@ Feature: OrangeHRM Logo
       |Admins    |admin123
 
 
+  @parallel_03
   @03
   Scenario: Login using multisteps
     Given profile "Admin"
@@ -43,6 +46,7 @@ Feature: OrangeHRM Logo
     And I press "logout()"
 
 
+  @parallel_04
   @04
   Scenario: Login using javascript
     When I wait for 2 seconds

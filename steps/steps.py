@@ -1,7 +1,6 @@
 from selenium.webdriver.support import expected_conditions as EC
 from behave import when, given, then
 from environment import Profiles
-from environment import Configuration as cfg
 import time
 import re
 
@@ -132,7 +131,7 @@ def i_execute(context, step):
 @when('I take screenshot of element "{selector}" and name it "{screenshot_name}"')
 def i_take_screenshot(context, screenshot_name, selector="", pageobject=""):
     element = i_should_see(context, selector, pageobject)
-    element.screenshot(f"../screenshots/{screenshot_name}.png")
+    element.screenshot(f"screenshots/{screenshot_name}.png")
 
 
 @when('I drag element "{pageobject_source}" over "{page_object_dest}"')

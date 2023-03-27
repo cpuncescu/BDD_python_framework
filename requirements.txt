@@ -1,4 +1,4 @@
-behave==1.2.6
+behave
 behave-html-formatter==0.9.10
-selenium==4.7.2
-
+selenium
+click
