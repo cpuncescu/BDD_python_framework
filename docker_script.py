@@ -1,17 +1,11 @@
 from behave.parser import parse_file
-import os
-import sys
-current_dir = os.getcwd()
-parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-sys.path.append(parent_dir)
-
 from environment import Configuration as cfg
-
+import os
+import itertools
 import multiprocessing
 import subprocess
 import time
 import click
-
 
 
 @click.command()
@@ -29,29 +23,22 @@ def run(docker_parallel_video='', docker_compose=''):
         run_parallel_tags(tags)
     elif docker_compose:
         os.environ["docker_compose"] = "True"
-        parent_path = get_parent_dir()
-        file_path = os.path.join(parent_path, "docker-compose-v3.yml")
-        subprocess.run(["docker", "compose", "-f", file_path, "up", "-d"])
+        subprocess.run(["docker", "compose", "-f", "docker-compose-v3.yml", "up", "-d"])
         time.sleep(5)
         subprocess.run(["behave", "--tags", "~all"])
-        subprocess.run(["docker", "compose", "-f", file_path, "down"])
+        subprocess.run(["docker", "compose", "-f", "docker-compose-v3.yml", "down"])
     else:
         subprocess.run(["behave", "--tags", "~all"])
 
 
 def get_feature_files():
+    test_dir = os.path.join(os.getcwd(), "tests")
     feature_files = [
-        os.path.join(os.getcwd(), f)
-        for f in os.listdir(os.getcwd())
+        os.path.join(test_dir, f)
+        for f in os.listdir(test_dir)
         if f.endswith(".feature")
     ]
     return feature_files
-
-
-def get_parent_dir():
-    current_dir = os.getcwd()
-    parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-    return parent_dir
 
 
 def get_parallel_tags(feature_files):
@@ -73,25 +60,24 @@ def get_parallel_tags(feature_files):
 
 
 def run_parallel_tags(tags):
-    container_ports = [4440, 4441, 4442, 4443, 4444]
-    video_ports = [5900, 5901, 5902, 5903, 5904]
+
+    container_ports = itertools.cycle([4440, 4441, 4442, 4443, 4444])
+    video_ports = itertools.cycle([5900, 5901, 5902, 5903, 5904])
+
     pool = multiprocessing.Pool(cfg.MAX_PARALLEL_SCENARIOS)
-    for tag, container_port, video_port in zip(tags, container_ports, video_ports):
+    for tag in tags:
+        container_port = next(container_ports)
+        video_port = next(video_ports)
         pool.apply_async(run_feature, args=(tag, container_port, video_port))
     pool.close()
     pool.join()
 
 
 def run_feature(tag, container_port, video_port):
-    # get the path one level above the current path so that we can store the videos there
-    parent_dir = get_parent_dir()
 
     container_name = f"selenium_{tag}"
-
     os.environ["ports"] = str(container_port)
-
     subprocess.run(["docker", "network", "create", f"selenium_grid_{tag}"])
-
     subprocess.run(
         [
             "docker",
@@ -119,7 +105,7 @@ def run_feature(tag, container_port, video_port):
             "--name",
             f"video_{tag}",
             "-v",
-            f"{parent_dir}/Scenario_videos:/videos",
+            "./Scenario_videos:/videos",
             "-e",
             f"DISPLAY_CONTAINER_NAME={container_name}",
             "-e",
