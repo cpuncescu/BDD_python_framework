@@ -4,3 +4,4 @@ selenium
 click
 purl
 jmespath
+jsonschema

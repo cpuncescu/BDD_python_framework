@@ -1,9 +1,11 @@
 import requests
 import json
 import jmespath
+import jsonschema
 from purl import URL
 from behave import when, given, then
 from environment import Profiles
+from steps import parse_profile_var
 
 
 @given('I am using site "{site}"')
@@ -32,10 +34,37 @@ def get_status(context, response_status):
 
 
 @then('the JSON at path "{jsonpath}" should be {value}')
-def get_status(context, jsonpath, value):
+def get_value_from_jsonpath(context, jsonpath, value):
     json_value = json.loads(value)
     json_response = json.loads(context.rest_response.text)
     json_path = jmespath.search(jsonpath, json_response)
     assert (
         json_path == json_value
     ), f"Assertion error: {json_path} of type {type(json_path)} is different than {json_value} of type {type(json_value)}"
+
+
+@then('the JSON at path "{jsonpath}" should be')
+def get_json_from_jsonpath(context, jsonpath):
+    json_value = json.loads(context.text)
+    json_response = json.loads(context.rest_response.text)
+    json_path = jmespath.search(jsonpath, json_response)
+    assert json_value == json_path, f"Assertion error: {json_value} is different than {json_path}"
+
+
+@then('the JSON should be')
+def get_json(context):
+    json_value = json.loads(context.text)
+    response_json = context.rest_response.json()
+    assert json_value == response_json, f"Assertion error: {json_value} is different than {response_json}"
+
+
+@then('the JSON has the following schema')
+@then('the JSON has schema "{schema}"')
+@parse_profile_var
+def validate_schema(context, schema=''):
+    if not schema:
+        schema = json.loads(context.text)
+    response_json = context.rest_response.json()
+    json_schema = json.loads(schema)
+    jsonschema.validate(response_json, json_schema)
+
