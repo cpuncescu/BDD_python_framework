@@ -2,3 +2,6 @@ behave
 behave-html-formatter==0.9.10
 selenium
 click
+purl
+jmespath
+jsonschema

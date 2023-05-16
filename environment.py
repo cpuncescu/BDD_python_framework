@@ -91,6 +91,7 @@ def before_step(context, step):
 def before_scenario(context, scenario):
     context.profile = None
     context.scenario = scenario
+    context.headers = {}
 
 
 def after_step(context, step):
@@ -98,7 +99,13 @@ def after_step(context, step):
 
 
 def after_scenario(context, scenario):
-    context.driver.execute_script("window.localStorage.clear();")
+    # check if the URL is a 'data:' URL
+    # skip it as the localStorage is not accessible
+    if context.driver.current_url.startswith('data:'):
+        pass
+    else:
+        context.driver.execute_script("window.localStorage.clear();")
+
     if context.step.status == Status.failed:
         context.driver.save_screenshot(
             f"failed_tests_screenshots/failed_{scenario}{scenario.tags[0]}.png"
